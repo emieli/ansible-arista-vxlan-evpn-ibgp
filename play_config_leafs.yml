@@ -1,0 +1,8 @@
+---
+
+- name: CONFIG LEAFS
+  gather_facts: False
+  connection: local
+  hosts: leafs
+  roles:
+    - config_leafs

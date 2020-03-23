@@ -1,0 +1,56 @@
+vlan internal allocation policy ascending range 4000 4090
+!
+service routing protocols model multi-agent
+!
+hostname {{ inventory_hostname }}
+!
+spanning-tree mode mstp
+!
+no aaa root
+!
+{% for interface_name, interface_values in interfaces.items() %}
+interface {{ interface_name }}
+   no switchport
+   ip address {{ interface_values.ipv4 }}
+   ip ospf network point-to-point
+   ip ospf area 0.0.0.0
+{% endfor %}
+!
+interface Loopback0
+   ip address {{ router_id }}/32
+   ip ospf area 0.0.0.0
+!
+interface Loopback1
+   ip address {{ mlag_id }}/32
+   ip ospf area 0.0.0.0
+!
+interface Management1
+   ip address dhcp
+   no lldp receive
+!
+ip routing
+!
+interface Vxlan1
+   vxlan source-interface Loopback1
+   vxlan udp-port 4789
+!
+ip virtual-router mac-address 00:00:00:11:11:11
+!
+router bgp {{ bgp.as }}
+   no bgp default ipv4-unicast
+   maximum-paths 8 ecmp 8
+   neighbor SPINE peer-group
+   neighbor SPINE remote-as {{ bgp.as }}
+   neighbor SPINE update-source Loopback0
+   neighbor SPINE send-community extended
+   neighbor SPINE maximum-routes 12000
+{% for host in groups['spines'] %}
+   neighbor {{ hostvars[host]['router_id'] }} peer-group SPINE
+{% endfor %}
+   !
+   address-family evpn
+      neighbor SPINE activate
+!
+router ospf 1
+   max-lsa 12000
+!

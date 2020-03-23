@@ -1,0 +1,11 @@
+---
+
+- name: config spines
+  eos_config:
+    src: spine.j2
+  register: output
+  
+- name: changes performed
+  debug:
+    msg: "{{ output.commands }}"
+  when: output.commands is defined

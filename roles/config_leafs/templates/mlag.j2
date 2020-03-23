@@ -1,0 +1,39 @@
+vlan {{ mlag.vlan }}
+  trunk group {{ mlag.trunk_group }}
+!
+interface {{ mlag.interface }}
+  switchport mode trunk
+  switchport trunk group {{ mlag.trunk_group }}
+!
+interface Vlan{{ mlag.vlan }}
+  no autostate
+{% if "A-" in inventory_hostname %}
+  ip address {{ mlag.leaf_a_ipv4 }}
+{% elif "B-" in inventory_hostname %}
+  ip address {{ mlag.leaf_b_ipv4 }}
+{% endif %}
+  !
+mlag configuration
+  domain-id MLAG
+  local-interface Vlan{{ mlag.vlan }}
+{% if "A-" in inventory_hostname %}
+  peer-address {{ mlag.leaf_b_ipv4 | ipv4('address') }}
+{% elif "B-" in inventory_hostname %}
+  peer-address {{ mlag.leaf_a_ipv4 | ipv4('address') }}
+{% endif %}
+  peer-link {{ mlag.interface }}
+!
+router bgp {{ bgp.as }}
+  neighbor MLAG peer-group
+  neighbor MLAG remote-as {{ bgp.as }}
+  neighbor MLAG send-community extended
+  neighbor MLAG maximum-routes 12000
+{% if "A-" in inventory_hostname %}
+  neighbor {{ mlag.leaf_b_ipv4 | ipv4('address') }} peer-group MLAG
+{% elif "B-" in inventory_hostname %}
+  neighbor {{ mlag.leaf_a_ipv4 | ipv4('address') }} peer-group MLAG
+{% endif %}
+  !
+  address-family evpn
+    neighbor MLAG activate
+!

@@ -1,0 +1,8 @@
+---
+
+- name: CONFIG SPINES
+  gather_facts: False
+  connection: local
+  hosts: spines
+  roles:
+    - config_spines

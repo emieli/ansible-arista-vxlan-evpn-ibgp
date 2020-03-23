@@ -1,0 +1,21 @@
+---
+
+- name: leaf base config
+  eos_config:
+    src: base.j2
+  register: output
+  
+- name: changes performed
+  debug:
+    msg: "{{ output.commands }}"
+  when: output.commands is defined
+
+- name: leaf mlag config
+  eos_config:
+    src: mlag.j2
+  register: output
+  
+- name: changes performed
+  debug:
+    msg: "{{ output.commands }}"
+  when: output.commands is defined
