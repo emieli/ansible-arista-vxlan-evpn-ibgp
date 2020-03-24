@@ -1,0 +1,13 @@
+vlans:
+  10:
+    state: present
+    ipv4_virtual: 10.0.10.1/24
+    vrf: A
+    trunk_groups:
+      - SRV
+  20:
+    state: present
+    ipv4_virtual: 10.0.20.1/24
+    vrf: A
+    trunk_groups:
+      - SRV

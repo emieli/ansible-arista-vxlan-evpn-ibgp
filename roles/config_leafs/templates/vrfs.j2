@@ -1,0 +1,6 @@
+{% for vrf in vrfs %}
+vrf definition {{ vrf }}
+!
+ip routing vrf {{ vrf }}
+!
+{% endfor %}
