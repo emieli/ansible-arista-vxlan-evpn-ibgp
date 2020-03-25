@@ -1,19 +1,26 @@
 {% for vlan, values in vlans.items() %}
 vlan {{ vlan }}
+   name vlan{{ vlan }}
 {% for trunk_group in values.trunk_groups %}
    trunk group {{ trunk_group }}
 {% endfor %}
+{% endfor %}
 !
+{% for vlan, values in vlans.items() %}
 {% if values.ipv4_virtual and values.vrf %}
 interface Vlan{{ vlan }}
    vrf forwarding {{ values.vrf }}
    ip address virtual {{ values.ipv4_virtual }}
 {% endif %}
+{% endfor %}
 !
 interface Vxlan1
+{% for vlan, values in vlans.items() %}
    vxlan vlan {{ vlan }} vni {{ vlan }}
+{% endfor %}
 !
 router bgp {{ bgp.as }}
+{% for vlan, values in vlans.items() %}
    vlan {{ vlan }}
       rd {{ bgp.as }}:{{ vlan }}
       route-target both {{ bgp.as }}:{{ vlan }}

@@ -35,3 +35,7 @@
   debug:
     msg: "{{ output.commands }}"
   when: output.commands is defined
+
+- name: save config
+  eos_config:
+    lines: wr
