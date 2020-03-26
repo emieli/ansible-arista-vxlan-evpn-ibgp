@@ -15,11 +15,10 @@ no vlan {{ switch_vlan }}
 {% endfor %}
 {% for vlan in vlans %}
 vlan {{ vlan }}
-   name {{ vlans[vlan]['name'] | default("vlan") }}
+   name {{ vlans[vlan]['name'] | default("vlan" + vlan|string) }}
 {%  if vlans[vlan]['trunk_groups'] is defined %}
-    no trunk group
 {%   for trunk_group in vlans[vlan]['trunk_groups'] %}
-     trunk group {{ trunk_group }}
+   trunk group {{ trunk_group }}
 {%   endfor %}
 {%  endif %}
 {% endfor %}
