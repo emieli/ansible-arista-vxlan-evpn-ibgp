@@ -1,0 +1,6 @@
+port_channels:
+  6:
+    mode: active # active|passive|"on"
+    trunk:
+      trunk_groups:
+        - FW

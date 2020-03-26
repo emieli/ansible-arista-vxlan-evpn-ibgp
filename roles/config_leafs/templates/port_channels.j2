@@ -1,0 +1,28 @@
+{# Remove port-channels in switch if not in ansible group_vars #}
+{% for switch_port_channel in switch_port_channels.stdout.0.portChannels  %}
+{% set channel_id = switch_port_channel | regex_replace('Port-Channel(\d+)', '\\1') | int %}
+{% if channel_id not in port_channels %}
+no interface {{ switch_port_channel }}
+{%  endif %}
+{% endfor %}
+!
+{# interface port-channel #}
+{% for port_channel in port_channels %}
+interface Port-Channel{{ port_channel }}
+   mlag {{ port_channel }}
+{%  if port_channels[port_channel]['trunk'] is defined %}
+{%   for trunk_group in port_channels[port_channel]['trunk']['trunk_groups'] %}
+   switchport mode trunk
+   switchport trunk group {{ trunk_group }}
+{%   endfor %}
+{%  elif port_channels[port_channel]['access'] is defined %}
+   switchport access vlan {{ port_channels[port_channel]['access']['vlan'] }}
+{%  endif %}
+{% endfor %}
+!
+{# interface ethernet #}
+{% for port_channel in port_channels %}
+interface Ethernet{{ port_channel }}
+   channel-group {{ port_channel }} mode {{ port_channels[port_channel]['mode'] }}
+!
+{% endfor %}

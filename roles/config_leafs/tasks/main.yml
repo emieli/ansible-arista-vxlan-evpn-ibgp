@@ -1,51 +1,67 @@
 ---
 
-# Base
-- name: leaf base config
-  eos_config:
-    src: base.j2
-  register: output  
-- name: changes performed
-  debug:
-    msg: "{{ output.commands }}"
-  when: output.commands is defined
+# # Base
+# - name: leaf base config
+#   eos_config:
+#     src: base.j2
+#   register: output  
+# - name: changes performed
+#   debug:
+#     msg: "{{ output.commands }}"
+#   when: output.commands is defined
 
-# MLAG
-- name: leaf mlag config
-  eos_config:
-    src: mlag.j2
-  register: output  
-- name: changes performed
-  debug:
-    msg: "{{ output.commands }}"
-  when: output.commands is defined
+# # MLAG
+# - name: leaf mlag config
+#   eos_config:
+#     src: mlag.j2
+#   register: output  
+# - name: changes performed
+#   debug:
+#     msg: "{{ output.commands }}"
+#   when: output.commands is defined
 
-# VRFs
-- name: get switch vrfs
+# # VRFs
+# - name: get switch vrfs
+#   eos_command:
+#     commands:
+#       - command: show vrf
+#         output: json
+#   register: switch_vrfs  
+# - name: leaf vrf config
+#   eos_config:
+#     src: vrfs.j2
+#   register: output
+# - name: changes performed
+#   debug:
+#     msg: "{{ output.commands }}"
+#   when: output.commands is defined
+
+# # VLANs
+# - name: get switch vlans
+#   eos_command:
+#     commands:
+#       - command: show vlan
+#         output: json
+#   register: switch_vlans
+# - name: leaf vlan config
+#   eos_config:
+#     src: vlans.j2
+#   register: output
+# - name: changes performed
+#   debug:
+#     msg: "{{ output.commands }}"
+#   when: output.commands is defined
+
+# Port channels
+- name: get port channels
   eos_command:
     commands:
-      - command: show vrf
+      - command: show etherchannel
         output: json
-  register: switch_vrfs  
-- name: leaf vrf config
+  register: switch_port_channels
+- name: leaf port_channels config
   eos_config:
-    src: vrfs.j2
-  register: output
-- name: changes performed
-  debug:
-    msg: "{{ output.commands }}"
-  when: output.commands is defined
-
-# VLANs
-- name: get switch vlans
-  eos_command:
-    commands:
-      - command: show vlan
-        output: json
-  register: switch_vlans
-- name: leaf vlan config
-  eos_config:
-    src: vlans.j2
+    src: port_channels.j2
   register: output
 - name: changes performed
   debug:

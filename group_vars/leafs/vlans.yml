@@ -2,8 +2,7 @@ vlans:
   10:
     ipv4_virtual: 10.0.10.1/24
     vrf: A
-    trunk_groups:
-      - SRV
+    trunk_groups: []
   20:
     ipv4_virtual: 10.0.20.1/24
     vrf: A
