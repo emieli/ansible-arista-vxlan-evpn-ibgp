@@ -1,6 +1,9 @@
+{% for switch_vrf in switch_vrfs.stdout.0.vrfs if switch_vrf not in vrfs %}
+no ip routing vrf {{ switch_vrf }}
+no vrf definition {{ switch_vrf }}
+{% endfor %}
+
 {% for vrf in vrfs %}
 vrf definition {{ vrf }}
-!
 ip routing vrf {{ vrf }}
-!
 {% endfor %}

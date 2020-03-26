@@ -1,29 +1,57 @@
-{% for vlan, values in vlans.items() %}
+{# The template looks like this (shitty) simply because eos_config module is really bad at
+   moving in and out of config contexts. If I want to go from "router bgp X" into "interface vxlan1",
+   the module will throw an error. So instead of simply looping through each vlan and doing all the things,
+   I have to go into each config context and THEN loop through each VLAN.
+   Looks horrible, but is fast and efficient. #}
+
+{# switch_vlans = vlans configured on the switch  #}
+{# vlans = vlans configured in ansible group_vars #}
+
+{# VLAN #}
+{% for switch_vlan in switch_vlans.stdout.0.vlans if switch_vlan|int not in vlans and switch_vlan|int < 4000 %}
+vlan {{ switch_vlan }}
+   no trunk group
+no vlan {{ switch_vlan }}
+{% endfor %}
+{% for vlan in vlans %}
 vlan {{ vlan }}
-   name vlan{{ vlan }}
-{% for trunk_group in values.trunk_groups %}
-   trunk group {{ trunk_group }}
-{% endfor %}
+   name {{ vlans[vlan]['name'] | default("vlan") }}
+{%  if vlans[vlan]['trunk_groups'] is defined %}
+    no trunk group
+{%   for trunk_group in vlans[vlan]['trunk_groups'] %}
+     trunk group {{ trunk_group }}
+{%   endfor %}
+{%  endif %}
 {% endfor %}
 !
-{% for vlan, values in vlans.items() %}
-{% if values.ipv4_virtual and values.vrf %}
+{# VLAN interface #}
+{% for switch_vlan in switch_vlans.stdout.0.vlans if switch_vlan|int not in vlans and switch_vlan|int < 4000 %}
+no interface Vlan{{ switch_vlan }}
+{% endfor %}
+{% for vlan in vlans if vlans[vlan]['ipv4_virtual'] is defined and vlans[vlan]['vrf'] is defined %}
 interface Vlan{{ vlan }}
-   vrf forwarding {{ values.vrf }}
-   ip address virtual {{ values.ipv4_virtual }}
-{% endif %}
+   vrf forwarding {{ vlans[vlan]['vrf'] }}
+   ip address virtual {{ vlans[vlan]['ipv4_virtual'] }}
 {% endfor %}
 !
+{# VXLAN vni #}
 interface Vxlan1
-{% for vlan, values in vlans.items() %}
+{% for switch_vlan in switch_vlans.stdout.0.vlans if switch_vlan|int not in vlans and switch_vlan|int < 4000 %}
+   no vxlan vlan {{ switch_vlan }} vni
+{% endfor %}
+{% for vlan in vlans %}
    vxlan vlan {{ vlan }} vni {{ vlan }}
 {% endfor %}
 !
+{# BGP EVPN #}
 router bgp {{ bgp.as }}
-{% for vlan, values in vlans.items() %}
+{% for switch_vlan in switch_vlans.stdout.0.vlans if switch_vlan|int not in vlans and switch_vlan|int < 4000 %}
+   no vlan {{ switch_vlan }}
+{% endfor %}
+{% for vlan in vlans %}
    vlan {{ vlan }}
       rd {{ bgp.as }}:{{ vlan }}
       route-target both {{ bgp.as }}:{{ vlan }}
       redistribute learned
-!
 {% endfor %}
+!
