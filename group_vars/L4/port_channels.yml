@@ -1,9 +1,0 @@
-port_channels:
-  10:
-    mode: "on" # active|passive|"on"
-    access:
-      vlan: 10
-  9:
-    mode: "on" # active|passive|"on"
-    access:
-      vlan: 9

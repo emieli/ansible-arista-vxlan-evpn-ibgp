@@ -2,6 +2,8 @@ ansible_connection: network_cli
 ansible_network_os: eos
 ansible_user:       ansible
 ansible_password:   ansible
+ansible_become:     yes
+ansible_become_method: enable
 
 bgp:
-  as: 65001
+  as: 1

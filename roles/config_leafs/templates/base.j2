@@ -1,5 +1,6 @@
 vlan internal allocation policy ascending range 4000 4090
-!
+logging console informational
+logging synchronous level critical
 service routing protocols model multi-agent
 !
 hostname {{ inventory_hostname }}
@@ -34,22 +35,30 @@ interface Vxlan1
    vxlan source-interface Loopback1
    vxlan udp-port 4789
 !
-ip virtual-router mac-address 00:00:00:11:11:11
+ip virtual-router mac-address 00:11:22:33:44:55
 !
 router bgp {{ bgp.as }}
    no bgp default ipv4-unicast
+   timers bgp 10 30
+   distance bgp 20 200 200
    maximum-paths 8 ecmp 8
-   neighbor SPINE peer-group
-   neighbor SPINE remote-as {{ bgp.as }}
-   neighbor SPINE update-source Loopback0
-   neighbor SPINE send-community extended
-   neighbor SPINE maximum-routes 12000
-{% for host in groups['spines'] %}
-   neighbor {{ hostvars[host]['router_id'] }} peer-group SPINE
-{% endfor %}
+   neighbor LEAF peer-group
+   neighbor LEAF remote-as {{ bgp.as }}
+   neighbor LEAF update-source Loopback0
+   neighbor LEAF send-community extended
+{# Internal Leafs peer with border leafs only. Border leafs peer with internal leafs only. #}
+{% if "internal_leafs" in group_names %}
+{%  for host in groups['border_leafs'] if hostvars[host]['site'] == site %}
+   neighbor {{ hostvars[host]['router_id'] }} peer-group LEAF
+{%  endfor %}
+{%  elif "border_leafs" in group_names %}
+{%  for host in groups['internal_leafs'] if hostvars[host]['site'] == site %}
+   neighbor {{ hostvars[host]['router_id'] }} peer-group LEAF
+{%  endfor %}
+{% endif %}
    !
    address-family evpn
-      neighbor SPINE activate
+      neighbor LEAF activate
 !
 router ospf 1
    max-lsa 12000

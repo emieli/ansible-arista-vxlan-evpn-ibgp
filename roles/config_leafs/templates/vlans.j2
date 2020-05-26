@@ -4,15 +4,16 @@
    I have to go into each config context and THEN loop through each VLAN.
    Looks horrible, but is fast and efficient. #}
 
-{# switch_vlans = vlans configured on the switch  #}
-{# vlans = vlans configured in ansible group_vars #}
+{# switch_vlans = configured on the switch  #}
+{# vlans = configured in hosts file #}
 
-{# VLAN #}
-{% for switch_vlan in switch_vlans.stdout.0.vlans if switch_vlan|int not in vlans and switch_vlan|int < 4000 %}
+{# Remove VLAN, but not vlan 1 or vlan 4094 #}
+{% for switch_vlan in switch_vlans.stdout.0.vlans if switch_vlan|int not in vlans and switch_vlan|int < 4000 and switch_vlan|int > 1 %}
 vlan {{ switch_vlan }}
    no trunk group
 no vlan {{ switch_vlan }}
 {% endfor %}
+{# Add VLAN #}
 {% for vlan in vlans %}
 vlan {{ vlan }}
    name {{ vlans[vlan]['name'] | default("vlan" + vlan|string) }}
@@ -23,34 +24,43 @@ vlan {{ vlan }}
 {%  endif %}
 {% endfor %}
 !
-{# VLAN interface #}
+{# Remove VLAN interface #}
 {% for switch_vlan in switch_vlans.stdout.0.vlans if switch_vlan|int not in vlans and switch_vlan|int < 4000 %}
 no interface Vlan{{ switch_vlan }}
 {% endfor %}
+{# Add VLAN interface #}
 {% for vlan in vlans if vlans[vlan]['ipv4_virtual'] is defined and vlans[vlan]['vrf'] is defined %}
 interface Vlan{{ vlan }}
    vrf forwarding {{ vlans[vlan]['vrf'] }}
+{%  if vlans[vlan]['ipv4_virtual'] is defined %}
    ip address virtual {{ vlans[vlan]['ipv4_virtual'] }}
+{%  elif vlans[vlan]['ipv4'] is defined %}
+   ip address {{ vlans[vlan]['ipv4'] }}
+{%  endif %}
 {% endfor %}
 !
-{# VXLAN vni #}
 interface Vxlan1
+{# Remove VXLAN VNI #}
 {% for switch_vlan in switch_vlans.stdout.0.vlans if switch_vlan|int not in vlans and switch_vlan|int < 4000 %}
    no vxlan vlan {{ switch_vlan }} vni
 {% endfor %}
+{# Add VXLAN VNI #}
 {% for vlan in vlans %}
    vxlan vlan {{ vlan }} vni {{ vlan }}
 {% endfor %}
 !
-{# BGP EVPN #}
+
 router bgp {{ bgp.as }}
+{# Remove BGP EVPN VLAN #}
 {% for switch_vlan in switch_vlans.stdout.0.vlans if switch_vlan|int not in vlans and switch_vlan|int < 4000 %}
    no vlan {{ switch_vlan }}
 {% endfor %}
+{# Add BGP EVPN VLAN #}
 {% for vlan in vlans %}
    vlan {{ vlan }}
       rd {{ bgp.as }}:{{ vlan }}
       route-target both {{ bgp.as }}:{{ vlan }}
       redistribute learned
+      no redistribute host-route
 {% endfor %}
 !
