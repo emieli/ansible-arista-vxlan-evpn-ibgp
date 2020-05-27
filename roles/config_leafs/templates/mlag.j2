@@ -1,11 +1,11 @@
 !
 vlan {{ mlag.vlan }}
    name MLAG
-   ! trunk group {{ mlag.trunk_group }}
+   trunk group MLAG
 !
 interface {{ mlag.interface }}
    switchport mode trunk
-   ! switchport trunk group {{ mlag.trunk_group }}
+   switchport trunk group MLAG
 !
 interface Vlan{{ mlag.vlan }}
    no autostate

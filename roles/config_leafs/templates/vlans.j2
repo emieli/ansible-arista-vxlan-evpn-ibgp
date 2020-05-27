@@ -3,10 +3,8 @@
    the module will throw an error. So instead of simply looping through each vlan and doing all the things,
    I have to go into each config context and THEN loop through each VLAN.
    Looks horrible, but is fast and efficient. #}
-
 {# switch_vlans = configured on the switch  #}
 {# vlans = configured in hosts file #}
-
 {# Remove VLAN, but not vlan 1 or vlan 4094 #}
 {% for switch_vlan in switch_vlans.stdout.0.vlans if switch_vlan|int not in vlans and switch_vlan|int < 4000 and switch_vlan|int > 1 %}
 vlan {{ switch_vlan }}
@@ -17,19 +15,20 @@ no vlan {{ switch_vlan }}
 {% for vlan in vlans %}
 vlan {{ vlan }}
    name {{ vlans[vlan]['name'] | default("vlan" + vlan|string) }}
-{%  if vlans[vlan]['trunk_groups'] is defined %}
-{%   for trunk_group in vlans[vlan]['trunk_groups'] %}
+{%  if vlans[vlan]['trunk']['groups'] is defined %}
+   trunk group MLAG
+{%   for trunk_group in vlans[vlan]['trunk']['groups'] %}
    trunk group {{ trunk_group }}
 {%   endfor %}
 {%  endif %}
 {% endfor %}
 !
 {# Remove VLAN interface #}
-{% for switch_vlan in switch_vlans.stdout.0.vlans if switch_vlan|int not in vlans and switch_vlan|int < 4000 %}
+{% for switch_vlan in switch_vlans.stdout.0.vlans if switch_vlan|int not in vlans and switch_vlan|int < 4000 and switch_vlan|int > 1 %}
 no interface Vlan{{ switch_vlan }}
 {% endfor %}
 {# Add VLAN interface #}
-{% for vlan in vlans if vlans[vlan]['ipv4_virtual'] is defined and vlans[vlan]['vrf'] is defined %}
+{% for vlan in vlans if vlans[vlan]['vrf'] is defined and vlans[vlan]['ipv4_virtual'] is defined or vlans[vlan]['ipv4'] is defined %}
 interface Vlan{{ vlan }}
    vrf forwarding {{ vlans[vlan]['vrf'] }}
 {%  if vlans[vlan]['ipv4_virtual'] is defined %}
@@ -41,7 +40,7 @@ interface Vlan{{ vlan }}
 !
 interface Vxlan1
 {# Remove VXLAN VNI #}
-{% for switch_vlan in switch_vlans.stdout.0.vlans if switch_vlan|int not in vlans and switch_vlan|int < 4000 %}
+{% for switch_vlan in switch_vlans.stdout.0.vlans if switch_vlan|int not in vlans and switch_vlan|int < 4000 and switch_vlan|int > 1 %}
    no vxlan vlan {{ switch_vlan }} vni
 {% endfor %}
 {# Add VXLAN VNI #}
@@ -52,7 +51,7 @@ interface Vxlan1
 
 router bgp {{ bgp.as }}
 {# Remove BGP EVPN VLAN #}
-{% for switch_vlan in switch_vlans.stdout.0.vlans if switch_vlan|int not in vlans and switch_vlan|int < 4000 %}
+{% for switch_vlan in switch_vlans.stdout.0.vlans if switch_vlan|int not in vlans and switch_vlan|int < 4000 and switch_vlan|int > 1 %}
    no vlan {{ switch_vlan }}
 {% endfor %}
 {# Add BGP EVPN VLAN #}
