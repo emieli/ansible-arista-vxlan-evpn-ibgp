@@ -1,5 +1,16 @@
 mlag_id: 10.255.0.4
 site: SITE2
+port_channels:
+  4:
+    description: FG1B
+    members:
+      - Ethernet4
+    lacp:
+      mode: active
+      rate: fast
+    trunk:
+      groups:
+        - FW
 vrfs:
   A:
     rd: "1:1"

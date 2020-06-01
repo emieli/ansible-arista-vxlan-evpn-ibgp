@@ -1,11 +1,11 @@
 {# Remove port-channels in switch if not in ansible group_vars #}
 {% if switch_port_channels.stdout.0.portChannels is defined %}
-{% for switch_port_channel in switch_port_channels.stdout.0.portChannels  %}
-{% set channel_id = switch_port_channel | regex_replace('Port-Channel(\d+)', '\\1') | int %}
-{%  if channel_id not in port_channels %}
+{%  for switch_port_channel in switch_port_channels.stdout.0.portChannels  %}
+{%  set channel_id = switch_port_channel | regex_replace('Port-Channel(\d+)', '\\1') | int %}
+{%   if channel_id not in port_channels %}
 no interface {{ switch_port_channel }}
-{%  endif %}
-{% endfor %}
+{%   endif %}
+{%  endfor %}
 {% endif %}
 !
 {# interface port-channel #}
@@ -28,6 +28,9 @@ interface Port-Channel{{ port_channel }}
 {%  for member in port_channels[port_channel]['members'] %}
 interface {{ member }}
    channel-group {{ port_channel }} mode {{ port_channels[port_channel]['lacp']['mode'] }}
+{%   if port_channels[port_channel]['lacp']['rate'] is defined %}
+   lacp rate {{ port_channels[port_channel]['lacp']['rate'] }}
+{%   endif %}
 !
 {%  endfor %}
 {% endfor %}

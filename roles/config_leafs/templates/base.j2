@@ -1,6 +1,5 @@
 vlan internal allocation policy ascending range 4000 4090
 logging console informational
-logging synchronous level all
 service routing protocols model multi-agent
 !
 hostname {{ inventory_hostname }}
@@ -41,6 +40,8 @@ router bgp {{ bgp.as }}
    no bgp default ipv4-unicast
    timers bgp 10 30
    distance bgp 20 200 200
+   bgp bestpath tie-break router-id
+   bgp bestpath tie-break cluster-list-length
    maximum-paths 8 ecmp 8
    neighbor LEAF peer-group
    neighbor LEAF remote-as {{ bgp.as }}

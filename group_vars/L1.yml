@@ -2,12 +2,12 @@ mlag_id: 10.255.0.1
 site: SITE1
 port_channels:
   4:
-    description: FW1
+    description: FG1A
     members:
       - Ethernet4
-      - Ethernet5
     lacp:
       mode: active
+      rate: fast
     trunk:
       groups:
         - FW
