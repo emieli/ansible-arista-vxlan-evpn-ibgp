@@ -14,34 +14,24 @@ router bgp {{ bgp.as }}
 {%  for switch_vrf in switch_vrfs.stdout.0.vrfs if switch_vrf not in vrfs %}
    no vrf {{ switch_vrf }}
 {%  endfor %}
-{%  if vrfs[vrf]['bgp'] is defined %}
+{%  if vrfs[vrf] is defined %}
    vrf {{ vrf }}
       rd {{ vrfs[vrf]['rd'] }}
       route-target import evpn {{ vrfs[vrf]['rd'] }}
       route-target export evpn {{ vrfs[vrf]['rd'] }}
       redistribute connected
-{%   if vrfs[vrf]['bgp']['graceful_restart'] is defined %}
+{%   if vrfs[vrf]['bgp'] is defined %}
+{%    if vrfs[vrf]['bgp']['graceful_restart'] is defined %}
       graceful-restart
-{%   endif %}
-{%   if vrfs[vrf]['bgp']['neighbors'] is defined %}
-{%    for neighbor in vrfs[vrf]['bgp']['neighbors'] %}
+{%    endif %}
+{%    if vrfs[vrf]['bgp']['neighbors'] is defined %}
+{%     for neighbor in vrfs[vrf]['bgp']['neighbors'] %}
       neighbor {{ neighbor }} remote-as {{ vrfs[vrf]['bgp']['neighbors'][neighbor]['remote_as'] }}
       !
       address-family ipv4
          neighbor {{ neighbor }} activate
-{%    endfor %}
+{%     endfor %}
+{%    endif %}
 {%   endif %}
 {%  endif %}
 {% endfor %}
-{#
-
-{%   if vrfs[vrf]['bgp']['neighbors'] is defined %}
-{%    for neighbor in vrfs[vrf]['bgp']['neighbors'] %}
-      neighbor {{ neighbor }} remote-as {{ vrfs[vrf]['bgp']['neighbors'][neighbor]['remote_as'] }}
-      !
-      address-family ipv4
-         neighbor {{ neighbor }} activate
-{%    endfor %}
-{%   endif %}
-{%  endif %}
-#}

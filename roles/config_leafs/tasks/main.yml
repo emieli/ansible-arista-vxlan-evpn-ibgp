@@ -56,20 +56,23 @@
   when: output.commands is defined
 
 # Port channels
-- name: get port channels
-  eos_command:
-    commands:
-      - command: show etherchannel
-        output: json
-  register: switch_port_channels
-- name: config port channels
-  eos_config:
-    src: port_channels.j2
-  register: output
-- name: changes performed
-  debug:
-    msg: "{{ output.commands }}"
-  when: output.commands is defined
+- name: port-channels
+  block:
+    - name: get port channels
+      eos_command:
+        commands:
+          - command: show etherchannel
+            output: json
+      register: switch_port_channels
+    - name: config port channels
+      eos_config:
+        src: port_channels.j2
+      register: output
+    - name: changes performed
+      debug:
+        msg: "{{ output.commands }}"
+      when: output.commands is defined
+  when: port_channels is defined
 
 # Save config
 - name: save config

@@ -1,0 +1,17 @@
+mlag_id: 10.255.0.4
+site: SITE2
+vrfs:
+  A:
+    rd: "1:1"
+    bgp:
+      graceful_restart: True
+      neighbors:
+        172.31.0.1:
+          remote_as: 2
+  B:
+    rd: "1:2"
+    bgp:
+      graceful_restart: True
+      neighbors:
+        172.31.0.9:
+          remote_as: 2

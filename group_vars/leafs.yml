@@ -4,3 +4,8 @@ mlag:
   leaf_a_ipv4: 10.0.0.0/31
   leaf_b_ipv4: 10.0.0.1/31
   trunk_group: MLAG
+vrfs:
+  A:
+    rd: "1:1"
+  B:
+    rd: "1:2"

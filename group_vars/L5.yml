@@ -1,0 +1,12 @@
+mlag_id: 10.255.0.5
+site: SITE2
+port_channels:
+  4:
+    description: ESX5
+    members:
+      - Ethernet4
+    lacp:
+      mode: active
+    trunk:
+      groups:
+        - ESX

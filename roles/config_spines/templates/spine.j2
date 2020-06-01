@@ -1,6 +1,6 @@
 vlan internal allocation policy ascending range 4000 4090
-!
-service routing protocols model multi-agent
+logging console informational
+logging synchronous level all
 !
 hostname {{ inventory_hostname }}
 !
@@ -14,7 +14,7 @@ interface {{ interface }}
    ip address {{ values.ipv4 }}
    ip ospf network point-to-point
    ip ospf area 0.0.0.0
-!{% endfor %}
+{% endfor %}
 !
 interface Loopback0
    ip address {{ router_id }}/32
@@ -25,22 +25,6 @@ interface Management1
    no lldp receive
 !
 ip routing
-!
-router bgp {{ bgp.as }}
-   router-id {{ router_id }}
-   no bgp default ipv4-unicast
-   maximum-paths 8 ecmp 8
-   bgp listen range 10.0.255.0/24 peer-group LEAF remote-as {{ bgp.as }}
-   neighbor LEAF peer-group
-   neighbor LEAF remote-as {{ bgp.as }}
-   neighbor LEAF update-source Loopback0
-   neighbor LEAF route-reflector-client
-   neighbor LEAF timers 10 30
-   neighbor LEAF send-community extended
-   neighbor LEAF maximum-routes 12000
-   !
-   address-family evpn
-      neighbor LEAF activate
 !
 router ospf 1
    max-lsa 12000

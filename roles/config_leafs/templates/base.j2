@@ -1,6 +1,6 @@
 vlan internal allocation policy ascending range 4000 4090
 logging console informational
-logging synchronous level critical
+logging synchronous level all
 service routing protocols model multi-agent
 !
 hostname {{ inventory_hostname }}
@@ -51,8 +51,12 @@ router bgp {{ bgp.as }}
 {%  for host in groups['border_leafs'] if hostvars[host]['site'] == site %}
    neighbor {{ hostvars[host]['router_id'] }} peer-group LEAF
 {%  endfor %}
-{%  elif "border_leafs" in group_names %}
+{% elif "border_leafs" in group_names %}
+   neighbor LEAF route-reflector-client
 {%  for host in groups['internal_leafs'] if hostvars[host]['site'] == site %}
+   neighbor {{ hostvars[host]['router_id'] }} peer-group LEAF
+{%  endfor %}
+{%  for host in groups['border_leafs'] if hostvars[host]['site'] != site %}
    neighbor {{ hostvars[host]['router_id'] }} peer-group LEAF
 {%  endfor %}
 {% endif %}

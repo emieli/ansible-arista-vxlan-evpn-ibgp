@@ -1,0 +1,28 @@
+mlag_id: 10.255.0.1
+site: SITE1
+port_channels:
+  4:
+    description: FW1
+    members:
+      - Ethernet4
+      - Ethernet5
+    lacp:
+      mode: active
+    trunk:
+      groups:
+        - FW
+vrfs:
+  A:
+    rd: "1:1"
+    bgp:
+      graceful_restart: True
+      neighbors:
+        172.31.0.1:
+          remote_as: 2
+  B:
+    rd: "1:2"
+    bgp:
+      graceful_restart: True
+      neighbors:
+        172.31.0.9:
+          remote_as: 2
